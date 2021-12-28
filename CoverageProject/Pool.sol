@@ -15,11 +15,11 @@ contract Pool is LPToken {
     }
 
     
-    function FlashLoan(address asset, address receiverAddress, uint256 amount) public {
+    function FlashLoan(address receiverAddress, uint256 amount) public {
     address receiver = IFlashLoanReceiver(receiverAddress);
     uint256 totalPremium = (amount*18)/10000;
     uint256 amountPlusPremium = amount + totalPremium;
-    IERC20(asset).safeTransferFrom(address(this),receiverAddress,amount);
+    payable(address(this)).send(receiverAddress,amount);
     require(receiver.executeOperation(asset,amount,totalPremium,msg.sender),'P_INVALID_FLASH_LOAN_EXECUTOR_RETURN');
     IERC20(asset).safeTransferFrom(receiverAddress,address(this),amountPlusPremium);
   }
