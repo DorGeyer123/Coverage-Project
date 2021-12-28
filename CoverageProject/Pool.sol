@@ -14,8 +14,13 @@ contract Pool is LPToken {
 		totalSupply-=amount;
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 function FlashLoan(address asset, address receiverAddress, uint256 amount) public {
+=======
+    
+    function FlashLoan(address asset, address receiverAddress, uint256 amount) public {
+>>>>>>> 7bcf79268e219cedd849462b11feb346b817b714
     address receiver = IFlashLoanReceiver(receiverAddress);
     uint256 totalPremium = (amount*18)/10000;
     uint256 amountPlusPremium = amount + totalPremium;
@@ -23,12 +28,17 @@ function FlashLoan(address asset, address receiverAddress, uint256 amount) publi
     require(receiver.executeOperation(asset,amount,totalPremium,msg.sender),'P_INVALID_FLASH_LOAN_EXECUTOR_RETURN');
     IERC20(params.asset).safeTransferFrom(receiverAddress,address(this),amountPlusPremium);
   }
+<<<<<<< HEAD
  
 =======
 	
 >>>>>>> 4740b133a5921f01b8e808652427afc7a33b26f3
 	
 	function getEthBalance(address account) public view returns (uint256){
+=======
+	
+    function getEthBalance(address account) public view returns (uint256){
+>>>>>>> 7bcf79268e219cedd849462b11feb346b817b714
 		return account.balance;
 	}
 
