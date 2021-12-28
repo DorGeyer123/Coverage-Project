@@ -9,7 +9,6 @@ contract Pool is LPToken {
     }
 
     function withdraw(uint256 amount) public returns (bool success)  {
-		uint256 amount = balanceOf[msg.sender];
 		_burn(msg.sender,amount);
 		success = payable(msg.sender).send(amount);
 		totalSupply-=amount;
