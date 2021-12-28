@@ -13,6 +13,7 @@ contract Pool is LPToken {
 		success = payable(msg.sender).send(amount);
 		totalSupply-=amount;
     }
+<<<<<<< HEAD
 
 function FlashLoan(address asset, address receiverAddress, uint256 amount) public {
     address receiver = IFlashLoanReceiver(receiverAddress);
@@ -23,6 +24,9 @@ function FlashLoan(address asset, address receiverAddress, uint256 amount) publi
     IERC20(params.asset).safeTransferFrom(receiverAddress,address(this),amountPlusPremium);
   }
  
+=======
+	
+>>>>>>> 4740b133a5921f01b8e808652427afc7a33b26f3
 	
 	function getEthBalance(address account) public view returns (uint256){
 		return account.balance;
