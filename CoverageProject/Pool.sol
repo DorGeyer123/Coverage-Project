@@ -14,7 +14,6 @@ contract Pool is LPToken {
 		totalSupply-=amount;
     }
 	
-	function init_state() public {}
 	
 	function getEthBalance(address account) public view returns (uint256){
 		return account.balance;
