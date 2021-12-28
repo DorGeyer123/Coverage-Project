@@ -1,4 +1,4 @@
-import {LPToken} from './LPToken.sol';
+import {IFlashLoanReceiver} from './IFlashLoanReceiver.sol';
 pragma solidity >=0.8.0;
 
 contract Pool is LPToken {
@@ -13,10 +13,20 @@ contract Pool is LPToken {
 		success = payable(msg.sender).send(amount);
 		totalSupply-=amount;
     }
-	
-	function init_state() public {}
+
+function FlashLoan(address asset, address receiverAddress, uint256 amount) public {
+    address receiver = IFlashLoanReceiver(receiverAddress);
+    uint256 totalPremium = (amount*18)/10000;
+    uint256 amountPlusPremium = amount + totalPremium;
+    IERC20(asset).safeTransferFrom(address(this),receiverAddress,amount);
+    require(receiver.executeOperation(asset,amount,totalPremium,msg.sender),'P_INVALID_FLASH_LOAN_EXECUTOR_RETURN');
+    IERC20(params.asset).safeTransferFrom(receiverAddress,address(this),amountPlusPremium);
+  }
+ 
 	
 	function getEthBalance(address account) public view returns (uint256){
 		return account.balance;
 	}
+
+
 }
