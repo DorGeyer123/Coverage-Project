@@ -7,8 +7,7 @@ contract Pool is LPToken {
     	IERC20(asset).safeTransferFrom(msg.sender,address(this),amount);
         uint256 poolBalance=IERC20(asset).balanceOf(address(this));
         if (totalSupply==0){
-            uint256 AmountToMint=amount;
-            _mint(msg.sender,AmountToMint);
+            _mint(msg.sender,amount);
         }
         else{
         uint256 AmountToMint= (amount*totalSupply)/poolBalance;
