@@ -9,7 +9,7 @@ contract Pool is LPToken {
         totalSupply+=amount;
     }
 
-    function withdraw(uint256 amount) public returns (bool success)  {
+    function withdraw(address asset,uint256 amount) public returns (bool success)  {
 		_burn(msg.sender,amount);
 		IERC20(asset).safeTransferFrom(address(this),msg.sender,amount);
 		totalSupply-=amount;
