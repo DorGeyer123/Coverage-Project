@@ -1,9 +1,5 @@
-
 pragma solidity >=0.8.0;
-
 contract LPToken {
-
-    
 
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
@@ -11,7 +7,6 @@ contract LPToken {
 
     function approve(address spender, uint256 amount) external returns (bool) {
         allowance[msg.sender][spender] = amount;
-        
         return true;
     }
 
@@ -20,24 +15,17 @@ contract LPToken {
         unchecked {
             balanceOf[recipient] += amount;
         }
-        
         return true;
     }
 
-    
-    function transferFrom(
-        address from,
-        address recipient,
-        uint256 amount
-    ) external returns (bool) {
+    function transferFrom(address from,address recipient,uint256 amount) 
+    external returns (bool) {
         if (allowance[from][msg.sender] != type(uint256).max) {
-            allowance[from][msg.sender] -= amount;
-        }
+            allowance[from][msg.sender] -= amount;}
         balanceOf[from] -= amount;
         unchecked {
             balanceOf[recipient] += amount;
         }
-        
         return true;
     }
 
@@ -45,10 +33,8 @@ contract LPToken {
         totalSupply += amount;
         unchecked {
             balanceOf[recipient] += amount;
-        }
-        
+        }  
     }
-    
 
     function _burn(address from, uint256 amount) internal {
         balanceOf[from] -= amount;

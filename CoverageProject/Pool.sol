@@ -5,8 +5,11 @@ contract Pool is LPToken {
 
     function deposit(address asset, uint256 amount) public payable {
     	IERC20(asset).safeTransferFrom(msg.sender,address(this),amount);
-        _mint(msg.sender,amount);
-        totalSupply+=amount;
+        uint256 poolBalance=IERC20(asset).balanceOf(address(this));
+        //should be separately defined for initialization
+        uint256 AmountToMint= amount*(totalSupply/poolBalance);
+        _mint(msg.sender,AmountToMint);
+        totalSupply+=AmountToMint;
     }
 
     function withdraw(address asset,uint256 amount) public returns (bool success)  {
@@ -24,10 +27,5 @@ contract Pool is LPToken {
     require(receiver.executeOperation(asset,amount,totalPremium,msg.sender),'P_INVALID_FLASH_LOAN_EXECUTOR_RETURN');
     IERC20(asset).safeTransferFrom(receiverAddress,address(this),amountPlusPremium);
   }
- 
-    function getEthBalance(address account) public view returns (uint256){
-		return account.balance;
-	}
-
 
 }
