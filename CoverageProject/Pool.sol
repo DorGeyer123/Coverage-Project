@@ -1,7 +1,7 @@
 import {IFlashLoanReceiver} from './IFlashLoanReceiver.sol';
 pragma solidity >=0.8.0;
 
-contract Pool is LPToken {
+contract Pool is LP_ERC20 {
 
     function deposit(address asset, uint256 amount) public payable {
     	IERC20(asset).safeTransferFrom(msg.sender,address(this),amount);
