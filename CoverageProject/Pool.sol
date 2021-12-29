@@ -11,6 +11,7 @@ contract Pool is LP_ERC20 {
       uint256 AmountToMint;
         
         if (totalSupply==0){
+            uint256 AmountToMint=amount;
             _mint(msg.sender,amount);
         }
         else{
