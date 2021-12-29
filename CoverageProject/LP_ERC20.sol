@@ -1,5 +1,5 @@
 pragma solidity >=0.8.0;
-contract LPToken {
+contract LP_ERC20 {
 
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
