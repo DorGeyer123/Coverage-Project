@@ -6,9 +6,14 @@ contract Pool is LPToken {
     function deposit(address asset, uint256 amount) public payable {
     	IERC20(asset).safeTransferFrom(msg.sender,address(this),amount);
         uint256 poolBalance=IERC20(asset).balanceOf(address(this));
-        //should be separately defined for initialization
-        uint256 AmountToMint= amount*(totalSupply/poolBalance);
+        if (totalSupply==0){
+            uint256 AmountToMint=amount;
+            _mint(msg.sender,AmountToMint);
+        }
+        else{
+        uint256 AmountToMint= (amount*totalSupply)/poolBalance;
         _mint(msg.sender,AmountToMint);
+        }
         totalSupply+=AmountToMint;
     }
 
