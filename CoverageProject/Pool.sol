@@ -5,20 +5,19 @@ pragma solidity >=0.8.0;
 
 contract Pool is LP_ERC20 {
 
-    function deposit(address asset, uint256 amount) public payable {
-    	IERC20(asset).transferFrom(msg.sender,address(this),amount);
+    function deposit(address asset, uint256 AmountToMint) public payable {
       uint256 poolBalance=IERC20(asset).balanceOf(address(this));
-      uint256 AmountToMint;
-        
+      uint256 amount;
         if (totalSupply==0){
-            AmountToMint=amount;
-            _mint(msg.sender,amount);
+            amount=AmountToMint;
         }
         else{
-        AmountToMint= (amount*totalSupply)/poolBalance;
-        _mint(msg.sender,AmountToMint);
+        amount=(AmountToMint*poolBalance)/totalSupply;
         }
         totalSupply+=AmountToMint;
+        IERC20(asset).transferFrom(msg.sender,address(this),amount);
+        _mint(msg.sender,AmountToMint);
+
     }
 
     function withdraw(address asset,uint256 amount) public returns (bool success)  {
