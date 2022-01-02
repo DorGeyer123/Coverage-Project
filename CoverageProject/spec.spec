@@ -1,13 +1,8 @@
-methods
-{
-     // erc20 function
-    balanceOf(address) returns(uint256) envfree
-    totalSupply() returns(uint256) envfree
-    transfer(address,uint256) returns(bool) envfree
-    transferFrom(address,address,uint256) returns(bool) envfree
+rule stupid(env e, uint256 x){
+    uint256 amount=deposit(e,x);
+    assert amount==x;
+
 }
-
-
 rule sanity(method f){
     calldataarg args;
     env e;
@@ -15,17 +10,3 @@ rule sanity(method f){
     assert false;
 
 }
-
-invariant balance_SE_supply(env e)
-    balanceOf(e.msg.sender) <= totalSupply()
-    {
-        preserved{
-            require e.msg.sender != currentContract;
-        }
-        preserved transfer(address to,uint256 amount){
-            require to != e.msg.sender;
-        }
-        preserved transferFrom(address from, address recipient, uint256 amount){
-            require recipient != e.msg.sender;
-        }
-    }
