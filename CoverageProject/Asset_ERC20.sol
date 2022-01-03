@@ -1,4 +1,4 @@
 pragma solidity >=0.8.0;
-import {IERC20} from './IERC20.sol';
-contract Asset_ERC20 is IERC20{
+import {ERC20} from './ERC20.sol';
+contract Asset_ERC20 is ERC20{
 }

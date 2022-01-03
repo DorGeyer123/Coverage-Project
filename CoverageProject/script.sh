@@ -1,6 +1,6 @@
-certoraRun Pool.sol LP_ERC20.sol IERC20.sol \
-    --link Pool:asset=IERC20 \
+certoraRun Pool.sol Asset_ERC20.sol \
+    --link Pool:asset=Asset_ERC20 \
 	--verify Pool:spec.spec \
     --solc solc8.0 \
-    --output ../output \
     --rule $1
+#    --toolOutput ../output \

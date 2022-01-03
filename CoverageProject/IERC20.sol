@@ -1,43 +1,18 @@
-pragma solidity >=0.8.0;
-contract IERC20 {
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
 
-    uint256 public totalSupply;
-    mapping(address => uint256) public balanceOf;
-    mapping(address => mapping(address => uint256)) public allowance;
+    function balanceOf(address account) external view returns (uint256);
 
-    function approve(address spender, uint256 amount) external returns (bool) {
-        allowance[msg.sender][spender] = amount;
-        return true;
-    }
+    function transfer(address recipient, uint256 amount) external returns (bool);
 
-    function transfer(address recipient, uint256 amount) external returns (bool) {
-        balanceOf[msg.sender] -= amount;
-        balanceOf[recipient] += amount;
-        
-        return true;
-    }
+    function allowance(address owner, address spender) external view returns (uint256);
 
-    function transferFrom(address from,address recipient,uint256 amount) 
-    external returns (bool) {
-        if (allowance[from][msg.sender] != type(uint256).max) {
-            allowance[from][msg.sender] -= amount;}
-        balanceOf[from] -= amount;
-        balanceOf[recipient] += amount;
+    function approve(address spender, uint256 amount) external returns (bool);
 
-        return true;
-    }
-
-    function _mint(address recipient, uint256 amount) internal {
-        totalSupply += amount;
-        balanceOf[recipient] += amount;
- 
-    }
-
-    function _burn(address from, uint256 amount) internal {
-        balanceOf[from] -= amount;
-            totalSupply -= amount;
-    }
-     
-
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
 }
