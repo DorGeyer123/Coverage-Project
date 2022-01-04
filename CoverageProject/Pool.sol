@@ -20,7 +20,6 @@ IERC20 public asset;
         // totalSupply+=AmountToMint;
         asset.transferFrom(msg.sender,address(this),amount);
         _mint(msg.sender,shares);
-        return amount;
     }
 
     function withdraw(uint256 shares) public returns (uint256 amountOut)  {
