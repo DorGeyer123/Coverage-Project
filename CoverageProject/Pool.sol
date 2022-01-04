@@ -16,6 +16,7 @@ IERC20 public asset;
         shares = ( amount * totalSupply() ) / poolBalance;
         require (shares != 0);
         amount = (shares*poolBalance)/totalSupply(); //the minimal amount required given the AmountToMint
+        require (amount != 0);
         }
         // totalSupply+=AmountToMint;
         asset.transferFrom(msg.sender,address(this),amount);
@@ -27,6 +28,7 @@ IERC20 public asset;
     amountOut = shares * poolBalance / totalSupply();
     require (amountOut != 0);
     shares = amountOut * totalSupply() / poolBalance;
+    require (shares != 0);
 		_burn(msg.sender,shares);
 		asset.transferFrom(address(this),msg.sender,amountOut);
     }

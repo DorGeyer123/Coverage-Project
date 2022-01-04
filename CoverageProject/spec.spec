@@ -57,7 +57,7 @@ rule more_user_shares_less_underlying(method f) // failures need to check
     uint256 Underlying_balance_before = underlying.balanceOf(e.msg.sender);
     uint256 User_balance_before = balanceOf(e.msg.sender);
 
-    // global_requires(e);
+    global_requires(e);
 
         calldataarg args;
         f(e,args);
@@ -69,9 +69,9 @@ rule more_user_shares_less_underlying(method f) // failures need to check
     assert User_balance_after < User_balance_before <=> Underlying_balance_after > Underlying_balance_before;
 }
 
-// function global_requires(env e){
-//     require e.msg.sender != currentContract;
-// }
+function global_requires(env e){
+    require e.msg.sender != currentContract;
+}
 
 
 rule stupid(env e, uint256 x){
