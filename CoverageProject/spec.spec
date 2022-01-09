@@ -1,4 +1,6 @@
-using Asset_ERC20 as underlying 
+using Asset_ERC20 as underlying
+using SymbolicFlashLoanReceiver as flashLoanReceiver
+
 methods
  {
       // pool's erc20 function
@@ -50,7 +52,7 @@ rule deposit_GR_zero(){ //failing due to bugs in the code
 }
 
 rule more_user_shares_less_underlying(method f) // failures need to check
-        // filtered {f -> f.selector != transfer(address,uint256).selector && f.selector != transferFrom(address,address,uint256).selector && !f.isView }
+        filtered {f -> f.selector != transfer(address,uint256).selector && f.selector != transferFrom(address,address,uint256).selector && !f.isView }
         {
     env e;
 
@@ -69,8 +71,81 @@ rule more_user_shares_less_underlying(method f) // failures need to check
     assert User_balance_after < User_balance_before <=> Underlying_balance_after > Underlying_balance_before;
 }
 
+rule more_shares_more_withdraw(){ //failing
+    env e;
+
+    uint256 sharesX;
+    uint256 sharesY;
+    uint256 amountX;
+    uint256 amountY;
+
+    global_requires(e);
+
+    storage init = lastStorage;
+
+    amountX =  withdraw(e,sharesX);
+    amountY =  withdraw(e,sharesY) at init;
+
+    assert sharesX > sharesY => amountX >= amountY;
+}
+
+rule flashLoan_adds_value(address receiver, uint256 amount){
+    env e;
+
+    global_requires(e);
+    uint256 totalSupply_pre = totalSupply();
+    // require totalSupply_pre != 0;
+    uint256 balance_pre = underlying.balanceOf(currentContract);
+    require balance_pre == 2 * totalSupply_pre;
+    FlashLoan(e,receiver,amount);
+    uint256 totalSupply_post = totalSupply();
+    // require totalSupply_post != 0;
+    uint256 balance_post = underlying.balanceOf(currentContract);
+    
+    assert flashLoanReceiver.callBackOption(e) == 0 => balance_post > balance_pre;
+    //assert balance_post/totalSupply_post >= balance_pre/totalSupply_pre;
+    assert balance_post * totalSupply_pre >= balance_pre * totalSupply_post;
+}
+
+rule user_solvency(address user, method f){
+env e;
+require user != e.msg.sender;
+require user != currentContract && user != flashLoanReceiver.to(e) && user != flashLoanReceiver;
+
+uint256 shares1 = balanceOf(user);
+uint256 poolBalance1 = underlying.balanceOf(currentContract);
+uint256 supply1 = totalSupply();
+require supply1 != 0;
+uint256 withdrawableAmount1 = shares1 * poolBalance1 / supply1;
+uint256 userBalance1 = underlying.balanceOf(user);
+uint256 total_pre = withdrawableAmount1 + userBalance1;
+
+        calldataarg args;
+        f(e,args);
+
+uint256 shares2 = balanceOf(user);
+uint256 poolBalance2 = underlying.balanceOf(currentContract);
+uint256 supply2 = totalSupply();
+require supply2 != 0;
+uint256 withdrawableAmount2 = shares2 * poolBalance2 / supply2;
+uint256 userBalance2 = underlying.balanceOf(user);
+uint256 total_post = withdrawableAmount1 + userBalance2;
+
+uint256 amount;
+uint256 fee = (amount*18)/10000;
+
+// assert poolBalance2 > poolBalance1 => f.selector == FlashLoan(address flashLoanReceiver,uint256 amount).selector;
+assert total_post > total_pre => ( f.selector == FlashLoan(address flashLoanReceiver,uint256 amount).selector &&
+                                   total_post - total_pre <= fee  && user!=e.msg.sender;
+assert total_post < total_pre => ( f.selector == FlashLoan(address flashLoanReceiver,uint256 amount).selector &&
+                                   total_pre - total_post <= fee  && user==e.msg.sender;
+
+}
+
 function global_requires(env e){
     require e.msg.sender != currentContract;
+    require e.msg.sender != flashLoanReceiver.to(e);
+    require e.msg.sender != flashLoanReceiver;
 }
 
 
