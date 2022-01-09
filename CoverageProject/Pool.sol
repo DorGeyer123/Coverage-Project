@@ -56,9 +56,9 @@ contract Pool is ERC20 {
     uint256 totalPremium = (amount*18)/10000;
     require (totalPremium != 0);
     uint256 amountPlusPremium = amount + totalPremium;
-    asset.transferFrom(address(this),receiverAddress,amount);
+    asset.transferFrom(address(this),msg.sender,amount);
     require(IFlashLoanReceiver(receiverAddress).executeOperation(amount,totalPremium,msg.sender),'P_INVALID_FLASH_LOAN_EXECUTOR_RETURN');
-    asset.transferFrom(receiverAddress,address(this),amountPlusPremium);
+    asset.transferFrom(msg.sender,address(this),amountPlusPremium);
   }
 
 }

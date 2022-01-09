@@ -5,6 +5,7 @@ certoraRun Pool.sol Asset_ERC20.sol SymbolicFlashLoanReceiver.sol \
     --staging \
     --cache AbstractPool \
     --msg "Abstract Pool, flash loan - $1 $2" \
-    --settings -postProcessCounterExamples=true
+    --settings -postProcessCounterExamples=true \
+    --rule $1
 #   --toolOutput ../output \
 #   --settings -multiAssertCheck \
