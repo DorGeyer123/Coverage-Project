@@ -6,8 +6,6 @@ methods
       // pool's erc20 function
      balanceOf(address) returns(uint256) envfree
      totalSupply() returns(uint256) envfree
-     transfer(address,uint256) returns(bool) envfree
-     transferFrom(address,address,uint256) returns(bool) envfree
      underlying.balanceOf(address) returns(uint256) envfree
 
      executeOperation(uint256,uint256,address) => DISPATCHER(true)
@@ -19,17 +17,17 @@ methods
 
  }
 
-invariant balance_SE_supply(env e)
-     balanceOf(e.msg.sender) <= totalSupply()
+invariant balance_SE_supply(address user)
+     balanceOf(user) <= totalSupply()
      {
-         preserved with (env e2){
-             require e.msg.sender == e2.msg.sender;
-             require e2.msg.sender != currentContract;
+         preserved with (env e){
+             require e.msg.sender == user;
+             require user != currentContract;
          }
-         preserved transfer(address to,uint256 amount){
+         preserved transfer(address to,uint256 amount) with (env e){
              require to != e.msg.sender;
          }
-         preserved transferFrom(address from, address recipient, uint256 amount){
+         preserved transferFrom(address from, address recipient, uint256 amount) with (env e){
              require recipient != e.msg.sender;
          }
      } 
@@ -170,14 +168,16 @@ address to;
     require user != to;
 uint256 amount;
 
+if f.isFallback{}
+else
 if f.selector == transferFrom(address,address,uint256).selector{
     address from;
     require user != from;
-    transferFrom(from,to,amount);
+    transferFrom(e,from,to,amount);
     }
 else
 if f.selector == transfer(address,uint256).selector{
-    transfer(to,amount);
+    transfer(e,to,amount);
     }
 else
     {
