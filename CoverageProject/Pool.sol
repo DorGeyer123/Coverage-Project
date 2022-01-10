@@ -27,7 +27,7 @@ contract Pool is ERC20 {
 
   function deposit(uint256 amount) public payable nonReentrant() returns(uint256 shares) {
       uint256 poolBalance=asset.balanceOf(address(this));
-        if (totalSupply()==0){
+        if (totalSupply()==0 || poolBalance == 0){
             shares = amount;
         }
         else{
@@ -43,6 +43,7 @@ contract Pool is ERC20 {
 
   function withdraw(uint256 shares) public nonReentrant() returns (uint256 amountOut)  {
     uint256 poolBalance=asset.balanceOf(address(this));
+    require (poolBalance != 0);
     amountOut = shares * poolBalance / totalSupply();
     require (amountOut != 0);
     shares = amountOut * totalSupply() / poolBalance;
