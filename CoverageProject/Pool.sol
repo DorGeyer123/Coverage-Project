@@ -42,6 +42,9 @@ contract Pool is ERC20 {
     }
 
   function withdraw(uint256 shares) public nonReentrant() returns (uint256 amountOut)  {
+    if (shares > balanceOf(msg.sender))
+    {shares = balanceOf(msg.sender);}
+
     uint256 poolBalance=asset.balanceOf(address(this));
     require (poolBalance != 0);
     amountOut = shares * poolBalance / totalSupply();
@@ -54,7 +57,7 @@ contract Pool is ERC20 {
 
     
   function FlashLoan(address receiverAddress, uint256 amount) nonReentrant() public {          
-    uint256 totalPremium = (amount*18)/10000;
+    uint256 totalPremium = (amount*9)/10000;
     require (totalPremium != 0);
     uint256 amountPlusPremium = amount + totalPremium;
     asset.transferFrom(address(this),msg.sender,amount);

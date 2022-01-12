@@ -17,21 +17,25 @@ methods
 
  }
 
+    definition absDiff(uint256 x, uint256 y) returns uint256 = x > y ? x - y : y - x;
+
+
 invariant balance_SE_supply(address user)
      balanceOf(user) <= totalSupply()
      {
          preserved with (env e){
-             require e.msg.sender == user;
+             require user == e.msg.sender;
              require user != currentContract;
          }
          preserved transfer(address to,uint256 amount) with (env e){
              require to != e.msg.sender;
          }
          preserved transferFrom(address from, address recipient, uint256 amount) with (env e){
+             require from != e.msg.sender;
              require recipient != e.msg.sender;
          }
      } 
-invariant totalSupply_GE_balance()
+invariant totalSupply_LE_balance()
     totalSupply() <= underlying.balanceOf(currentContract)
 {
         preserved with (env e){
@@ -115,15 +119,20 @@ rule user_solvency(address user){
 env e;
 
 require user != currentContract && user != flashLoanReceiver.to(e) && user != flashLoanReceiver;
-require e.msg.sender != currentContract;
+global_requires(e);
 
 uint256 shares1 = balanceOf(user);
 uint256 poolBalance1 = underlying.balanceOf(currentContract);
 uint256 supply1 = totalSupply();
+
 require supply1 != 0;
+require shares1 < 2^128 && poolBalance1 < 2^128;
+
 uint256 withdrawableAmount1 = shares1 * poolBalance1 / supply1;
+require withdrawableAmount1 * supply1 == shares1 * poolBalance1;
+
 uint256 userBalance1 = underlying.balanceOf(user);
-uint256 total_pre = withdrawableAmount1 + userBalance1;
+uint256 total_pre = add(withdrawableAmount1, userBalance1);
 
 uint256 amount;
 
@@ -132,23 +141,30 @@ FlashLoan(e,flashLoanReceiver, amount);
 uint256 shares2 = balanceOf(user);
 uint256 poolBalance2 = underlying.balanceOf(currentContract);
 uint256 supply2 = totalSupply();
-require supply2 != 0;
-uint256 withdrawableAmount2 = shares2 * poolBalance2 / supply2;
-uint256 userBalance2 = underlying.balanceOf(user);
-uint256 total_post = withdrawableAmount2 + userBalance2;
 
-uint256 fee_for_LP = (amount*18*shares2)/(10000 * supply2);
-uint256 fee_for_none_LP = (amount*18)/10000 ;
+require supply2 != 0;
+require shares1 <= supply1 && shares2 <= supply2; // invariant shares <= supply
+require shares2 < 2^128 && poolBalance2 < 2^128;
+
+uint256 withdrawableAmount2 = shares2 * poolBalance2 / supply2;
+require withdrawableAmount2 * supply2 == shares2 * poolBalance2;
+
+uint256 userBalance2 = underlying.balanceOf(user);
+uint256 total_post = add(withdrawableAmount2, userBalance2);
+
+uint256 fee_for_LP = (amount*9*shares2)/(10000 * supply2);
+uint256 fee_for_none_LP = (amount*9)/10000 ;
 
 // assert shares1 == shares2;
 // assert poolBalance2 > poolBalance1 => f.selector == FlashLoan(address flashLoanReceiver,uint256 amount).selector;
 // assert total_post > total_pre =>  total_post - total_pre <= fee  && user!=e.msg.sender;
 // assert total_post < total_pre => total_pre - total_post <= fee  && user==e.msg.sender;
-assert (user != e.msg.sender && shares1 != 0) => (total_post - total_pre <= fee_for_LP);
-// assert user == e.msg.sender && shares1 != 0 =>  total_pre - total_post <= fee_for_LP ;
-// assert user != e.msg.sender && shares1 == 0 =>  total_pre == total_post;
-// assert user == e.msg.sender && shares1 == 0 =>  total_post + fee_for_none_LP == total_pre;
+assert (user != e.msg.sender && shares1 != 0) => (sub(total_post, total_pre) <= fee_for_LP);
+assert (user == e.msg.sender && shares1 != 0) => (sub(total_pre, total_post) < fee_for_LP);
+assert (user != e.msg.sender && shares1 == 0) => (total_pre == total_post);
+assert (user == e.msg.sender && shares1 == 0) => (add(total_post, fee_for_none_LP) == total_pre);
 }
+
 rule user_solvency_without_flashloan(address user, method f)filtered { f-> f.selector != FlashLoan(address,uint256).selector }{
 env e;
 // require user != e.msg.sender;
@@ -158,44 +174,62 @@ global_requires(e);
 uint256 shares1 = balanceOf(user);
 uint256 poolBalance1 = underlying.balanceOf(currentContract);
 uint256 supply1 = totalSupply();
+
 require supply1 != 0;
+require shares1 < 2^128 && poolBalance1 < 2^128;
+
 uint256 withdrawableAmount1 = shares1 * poolBalance1 / supply1;
+require withdrawableAmount1 * supply1 == shares1 * poolBalance1;
 uint256 userBalance1 = underlying.balanceOf(user);
-require withdrawableAmount1 <= to_mathint(2^255) - userBalance1;
-uint256 total_pre = withdrawableAmount1 + userBalance1;
+uint256 total_pre = add(withdrawableAmount1, userBalance1);
 
-address to;
-    require user != to;
 uint256 amount;
+withdraw(e,amount);
 
-if f.isFallback{}
-else
-if f.selector == transferFrom(address,address,uint256).selector{
-    address from;
-    require user != from;
-    transferFrom(e,from,to,amount);
-    }
-else
-if f.selector == transfer(address,uint256).selector{
-    transfer(e,to,amount);
-    }
-else
-    {
-        calldataarg args;
-        f(e,args);
-    }
+// if f.isFallback{}
+// else
+// if f.selector == transferFrom(address,address,uint256).selector{
+//     address to;
+//     require user != to;
+//     address from;
+//     require user != from;
+//     transferFrom(e,from,to,amount);
+//     }
+// else
+// if f.selector == transfer(address,uint256).selector{
+//     address to;
+//     require user != to;
+//     address from;
+//     require user != from;
+//     transferFrom(e,from,to,amount);
+//     }
+// else
+//     {
+//         calldataarg args;
+//         f(e,args);
+//     }
 
 uint256 shares2 = balanceOf(user);
 uint256 poolBalance2 = underlying.balanceOf(currentContract);
 uint256 supply2 = totalSupply();
-require supply2 != 0;
-uint256 withdrawableAmount2 = shares2 * poolBalance2 / supply2;
-uint256 userBalance2 = underlying.balanceOf(user);
-// require 2^256 - userBalance2 >= withdrawableAmount2;
-require withdrawableAmount2 <= to_mathint(2^255) - userBalance2;
-uint256 total_post = withdrawableAmount2 + userBalance2;
 
-assert total_pre == total_post;
+require supply2 != 0;
+require shares1 <= supply1 && shares2 <= supply2; // invariant shares <= supply
+require shares2 < 2^128 && poolBalance2 < 2^128;
+
+uint256 withdrawableAmount2 = shares2 * poolBalance2 / supply2;
+require withdrawableAmount2 * supply2 == shares2 * poolBalance2;
+uint256 userBalance2 = underlying.balanceOf(user);
+uint256 total_post = add(withdrawableAmount2, userBalance2);
+
+uint256 max_diff = absDiff(total_pre,total_post);
+assert max_diff < 4;
+// assert total_pre >= total_post;
+// uint256 temp = add(total_post,2);
+// assert total_pre <= temp; //add(total_post,10000000);
+//  ||
+//        total_pre == sub(total_post,10000000) ||
+//        total_pre == total_post;
 }
 
 function global_requires(env e){
@@ -203,7 +237,9 @@ function global_requires(env e){
     require e.msg.sender != flashLoanReceiver.to(e);
     require e.msg.sender != flashLoanReceiver;
     requireInvariant totalSupply_vs_balance();
-    requireInvariant totalSupply_GE_balance();
+    requireInvariant totalSupply_LE_balance();
+    // address user;
+    // requireInvariant balance_SE_supply(user);
 }
 
 
@@ -213,4 +249,16 @@ rule sanity(method f){
     f(e,args);
     assert false;
 
+}
+
+////// Help functions //////
+function add(uint256 a, uint256 b) returns uint256{
+    uint256 c = a + b;
+    require(c >= a);
+    return c;
+}
+
+function sub(uint256 a, uint256 b) returns uint256{
+    require (b <= a);
+    return to_uint256(a - b);
 }

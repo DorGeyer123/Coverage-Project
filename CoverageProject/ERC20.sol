@@ -46,9 +46,9 @@ abstract contract ERC20  is IERC20{
  
     }
 
-    function _burn(address from, uint256 amount) internal {
+    function _burn(address user, uint256 amount) internal {
         _totalSupply -= amount;
-        _balanceOf[from] -= amount;
+        _balanceOf[user] -= amount;
     }
      
 }
